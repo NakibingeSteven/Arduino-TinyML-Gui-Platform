@@ -3,7 +3,8 @@ from tkinter import filedialog
 from tkinter.ttk import Style, Treeview
 from sklearn.datasets import make_blobs
 from everywhereml.sklearn.ensemble import RandomForestClassifier
-
+import tkinter.messagebox as messagebox
+import pandas as pd
 class MLGui:
     def __init__(self):
         self.topLevel = tk.Tk()
@@ -27,7 +28,8 @@ class MLGui:
 
         file_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Open Data", command=self.load_data)
+        file_menu.add_command(label="Open CSV", command=self.open_csv)
+        file_menu.add_command(label="Data Statistics", command=self.show_data_statistics)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.topLevel.quit)
 
@@ -42,7 +44,9 @@ class MLGui:
         frame = tk.Frame(self.topLevel)
         frame.pack(padx=20, pady=20)
 
-        title_label = tk.Label(frame, text="Machine Learning Trainer", font=("Helvetica", 16))
+        title_label = tk.Label(
+            frame, text="Machine Learning Trainer", font=("Helvetica", 16)
+        )
         title_label.grid(row=0, column=0, columnspan=2, pady=10)
 
         # Create a frame to display data
@@ -53,14 +57,58 @@ class MLGui:
         self.data_tree.heading("X", text="X")
         self.data_tree.heading("y", text="y")
         self.data_tree.pack(padx=20, pady=20)
+    
+    def open_csv(self):
+        file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
+        if file_path:
+            try:
+                # Load the CSV data into a DataFrame
+                df = pd.read_csv(file_path)
+                # Display the data in a new window or widget
+                self.display_csv_data(df)
+            except Exception as e:
+                messagebox.showerror("Error", f"Error loading CSV file: {str(e)}")
 
+    def show_data_statistics(self):
+        if self.X is not None and self.y is not None:
+            # Compute basic statistics on self.X and self.y
+            x_mean = self.X.mean()
+            y_mean = self.y.mean()
+            x_std = self.X.std()
+            y_std = self.y.std()
+            
+            # Display the statistics in a messagebox
+            statistics_message = f"X Mean: {x_mean}\nY Mean: {y_mean}\nX Std: {x_std}\nY Std: {y_std}"
+            messagebox.showinfo("Data Statistics", statistics_message)
+
+    
+    def display_csv_data(self, dataframe):
+        # Create a new window to display the CSV data
+        csv_window = tk.Toplevel(self.topLevel)
+        csv_window.title("CSV Data")
+        csv_window.geometry("800x600")  # Set the dimensions as needed
+
+        # Create a text widget to display the CSV data
+        text_widget = tk.Text(csv_window, wrap=tk.WORD)
+        text_widget.pack(fill=tk.BOTH, expand=True)
+
+        # Insert the DataFrame's data into the text widget
+        text_widget.insert(tk.END, dataframe.to_string())
+
+        # Add a scrollbar to the text widget
+        scrollbar = tk.Scrollbar(text_widget)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        text_widget.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=text_widget.yview)
     def load_data(self):
         # Implement this function
         pass
 
     def make_data(self):
         print("Making data is starting....")
-        self.X, self.y = make_blobs(n_samples=100, centers=3, n_features=2, random_state=0)
+        self.X, self.y = make_blobs(
+            n_samples=100, centers=3, n_features=2, random_state=0
+        )
         print("Making data is done....")
         self.display_data()
 
@@ -85,7 +133,9 @@ class MLGui:
     def convert(self):
         if self.classifier:
             print("Converting initializing.....")
-            self.arduinoModel = self.classifier.to_arduino(instance_name="blobClassifier")
+            self.arduinoModel = self.classifier.to_arduino(
+                instance_name="blobClassifier"
+            )
             print(self.arduinoModel)
             print("Converting is done")
         else:
@@ -96,7 +146,7 @@ class MLGui:
             model_path = filedialog.asksaveasfilename(
                 defaultextension=".h",
                 title="Save TinyML Model",
-                filetypes=[("TinyML files", "*.h"), ("All files", "*.*")]
+                filetypes=[("TinyML files", "*.h"), ("All files", "*.*")],
             )
             if model_path:
                 with open(model_path, "w") as file:
@@ -107,6 +157,7 @@ class MLGui:
 
     def run(self):
         self.topLevel.mainloop()
+
 
 if __name__ == "__main__":
     ml_gui = MLGui()
