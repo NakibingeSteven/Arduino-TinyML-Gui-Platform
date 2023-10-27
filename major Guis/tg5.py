@@ -3,8 +3,6 @@ from tkinter import filedialog
 from tkinter.ttk import Style, Treeview
 from sklearn.datasets import make_blobs
 from everywhereml.sklearn.ensemble import RandomForestClassifier
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class MLGui:
     def __init__(self):
@@ -56,14 +54,6 @@ class MLGui:
         self.data_tree.heading("y", text="y")
         self.data_tree.pack(padx=20, pady=20)
 
-        # Create a frame for the scatter plot
-        scatter_frame = tk.Frame(data_frame)
-        scatter_frame.pack(padx=20, pady=20)
-
-        self.figure, self.ax = plt.subplots()
-        self.canvas = FigureCanvasTkAgg(self.figure, master=scatter_frame)
-        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-
     def load_data(self):
         # Implement this function
         pass
@@ -73,7 +63,6 @@ class MLGui:
         self.X, self.y = make_blobs(n_samples=100, centers=3, n_features=2, random_state=0)
         print("Making data is done....")
         self.display_data()
-        self.display_scatter_plot()
 
     def display_data(self):
         # Clear any existing data
@@ -83,15 +72,6 @@ class MLGui:
         if self.X is not None and self.y is not None:
             for x_val, y_val in zip(self.X, self.y):
                 self.data_tree.insert("", "end", values=(x_val, y_val))
-
-    def display_scatter_plot(self):
-        if self.X is not None and self.y is not None:
-            self.ax.clear()
-            self.ax.scatter(self.X[:, 0], self.X[:, 1], c=self.y)
-            self.ax.set_xlabel("X-axis")
-            self.ax.set_ylabel("Y-axis")
-            self.ax.set_title("Scatter Plot")
-            self.canvas.draw()
 
     def train_model(self):
         if self.X is not None and self.y is not None:
