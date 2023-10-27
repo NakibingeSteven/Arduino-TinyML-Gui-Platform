@@ -33,6 +33,7 @@ class MLGui:
         self.y = None
         self.classifier = None
         self.arduinoModel = None
+        self.numValues = 1000;
 
         self.create_menubar()
         self.create_gui()
@@ -151,11 +152,9 @@ class MLGui:
         print("Making data is done....")
         self.display_data()
 
-    def generate_ultrasonic_csv(self,numvalues):
+    def generate_ultrasonic_csv(self,):
         data = []
-        self.numValues= numvalues
         data.append(["Distance", "Command"])
-
         for i in range(self.numValues):
             distance = Decimal(random.uniform(10, 50)).quantize(Decimal("0.00"))  # Random distance between 10 and 50 cm
             if distance < 20:
@@ -166,10 +165,11 @@ class MLGui:
                 command = "safe"
             data.append([distance, command])
             
-        with open(self.filename + '.csv', "w", newline="") as file:
+        with open('Ultrasonic Data.csv', "w", newline="") as file:
             writer = csv.writer(file)
             writer.writerows(data)
-        print(f"CSV file '{self.filename + '.csv'}' generated successfully!")
+        messagebox.showinfo(f"CSV file '{'Ultrasonic Data.csv'}' generated successfully!")
+        print(f"CSV file '{'Ultrasonic Data.csv'}' generated successfully!")
 
     # Generate sample data
     def doubleLinearRegressData(self):
