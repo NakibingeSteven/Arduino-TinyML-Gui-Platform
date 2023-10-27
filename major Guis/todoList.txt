@@ -1,0 +1,21 @@
+adjust the file menu to a format
+
+file  
+  import csv file
+  exit
+
+Visualisations(external window)
+  plot data
+  plot model
+  plot data vs model
+
+data
+  generate ultrasnic data
+  generate two column number data
+  generate 3 column number data
+
+model
+  train model
+  select model
+  save model
+  set model parameters(into sql db)
