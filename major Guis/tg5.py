@@ -19,6 +19,10 @@ class MLGui:
         style = Style()
         style.configure("TButton", font=("Helvetica", 12))
 
+        #for holding data
+        self.data = None
+
+        #for breaking down data
         self.X = None
         self.y = None
         self.classifier = None
@@ -92,6 +96,10 @@ class MLGui:
             try:
                 # Load the CSV data into a DataFrame
                 df = pd.read_csv(file_path)
+
+                # Display the data in the Treeview widget
+                self.display_data()
+
                 # Display the data in a new window or widget
                 self.display_csv_data(df)
             except Exception as e:
@@ -128,10 +136,7 @@ class MLGui:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         text_widget.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=text_widget.yview)
-    def load_data(self):
-        # Implement this function
-        pass
-
+ 
     def make_data(self):
         print("Making data is starting....")
         self.X, self.y = make_blobs(
@@ -144,10 +149,17 @@ class MLGui:
         # Clear any existing data
         for row in self.data_tree.get_children():
             self.data_tree.delete(row)
+        
+        #if self.data is defined but not x and y then put row in tree
+        if self.data is not None:
+            # If there are more than 2 columns, display each column as separate values
+            for index, row in self.data.iterrows():
+                self.data_tree.insert("", "end", values=row)
 
-        if self.X is not None and self.y is not None:
-            for x_val, y_val in zip(self.X, self.y):
-                self.data_tree.insert("", "end", values=(x_val, y_val))
+        else:
+            if self.X is not None and self.y is not None:
+                for x_val, y_val in zip(self.X, self.y):
+                    self.data_tree.insert("", "end", values=(x_val, y_val))
 
     def train_model(self):
         if self.X is not None and self.y is not None:
