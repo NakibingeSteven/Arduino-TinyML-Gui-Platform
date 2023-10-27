@@ -94,61 +94,28 @@ class MLGui:
         if file_path:
             try:
                 # Load the CSV data into a DataFrame
-                df = pd.read_csv(file_path)
-
-                # Display the data in the Treeview widget
-                self.display_data()
+                self.data = pd.read_csv(file_path)
 
                 # Display the data in a new window or widget
-                self.display_csv_data(df)
+                self.display_csv_data(self.data)
             except Exception as e:
                 messagebox.showerror("Error", f"Error loading CSV file: {str(e)}")
 
     def show_data_statistics(self):
-        if self.X is not None and self.y is not None:
+        if self.data is not None:
             try:
-                # Compute basic statistics on self.X and self.y
-                x_mean = self.X.mean()
-                y_mean = self.y.mean()
-                x_std = self.X.std()
-                y_std = self.y.std()
-                x_median = np.median(self.X)
-                y_median = np.median(self.y)
-                x_variance = np.var(self.X)
-                y_variance = np.var(self.y)
-                x_min = np.min(self.X)
-                y_min = np.min(self.y)
-                x_max = np.max(self.X)
-                y_max = np.max(self.y)
+                # Compute basic statistics on self.data
+                data_statistics = self.data.describe()
 
                 # Display the statistics in a messagebox
-                statistics_message = (
-                    f"X Mean: {x_mean:.2f}\nY Mean: {y_mean:.2f}\n"
-                    f"X Std: {x_std:.2f}\nY Std: {y_std:.2f}\n"
-                    f"X Median: {x_median:.2f}\nY Median: {y_median:.2f}\n"
-                    f"X Variance: {x_variance:.2f}\nY Variance: {y_variance:.2f}\n"
-                    f"X Min: {x_min:.2f}\nY Min: {y_min:.2f}\n"
-                    f"X Max: {x_max:.2f}\nY Max: {y_max:.2f}"
-                )
+                statistics_message = data_statistics.to_string()
                 messagebox.showinfo("Data Statistics", statistics_message)
             except Exception as e:
                 messagebox.showerror("Error", f"Error calculating data statistics: {str(e)}")
         else:
             messagebox.showwarning("Warning", "No data available for statistics. Generate or load data first.")
 
-    def show_data_statistics(self):
-        if self.X is not None and self.y is not None:
-            # Compute basic statistics on self.X and self.y
-            x_mean = self.X.mean()
-            y_mean = self.y.mean()
-            x_std = self.X.std()
-            y_std = self.y.std()
-            
-            # Display the statistics in a messagebox
-            statistics_message = f"X Mean: {x_mean}\nY Mean: {y_mean}\nX Std: {x_std}\nY Std: {y_std}"
-            messagebox.showinfo("Data Statistics", statistics_message)
 
-    
     def display_csv_data(self, dataframe):
         # Create a new window to display the CSV data
         csv_window = tk.Toplevel(self.topLevel)
@@ -277,13 +244,12 @@ class MLGui:
             plot_type_window.title("Select Plot Type")
 
             # Determine the number of columns in the data
-            num_columns = 2  # Default to 2
-            if self.X is not None:
-                num_columns = self.X.shape[1]
+            num_columns = len(self.data.columns)
+
 
             # Create checkboxes for selecting columns to be plotted
             checkbox_vars = [tk.IntVar() for _ in range(num_columns)]
-            for i in range(num_columns):
+            for i in range(self.data.columns):
                 checkbox = tk.Checkbutton(
                     plot_type_window,
                     text=f"Column {i + 1}",

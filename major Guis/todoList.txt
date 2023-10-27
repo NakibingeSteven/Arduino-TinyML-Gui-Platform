@@ -8,6 +8,7 @@ Visualisations(external window)
   plot data
   plot model
   plot data vs model
+  Epoch vs loss
 
 data
   generate ultrasnic data
@@ -19,3 +20,6 @@ model
   select model
   save model
   set model parameters(into sql db)
+
+logger
+  logs data and saves it into csv
