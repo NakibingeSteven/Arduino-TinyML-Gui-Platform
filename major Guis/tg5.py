@@ -178,7 +178,7 @@ class MLGui:
         X = np.random.rand(100, 1) * 10
         y = 2 * X + 3 + np.random.randn(100, 1) * 2  # y = 2*X + 3 + noise
         df = pd.DataFrame({"X": X.flatten(), "Y": y.flatten()})
-        df.to_csv("2 digit Linear.csv", index=False)
+        df.to_csv("2 digit Linear.csv", index=False, float_format='%.2f')
         messagebox.showinfo("Info", "Two-column linear regression data generation is complete.")
 
 
@@ -188,7 +188,7 @@ class MLGui:
         X = np.random.rand(100, 3) * 10
         y = (X[:, 0] + 2 * X[:, 1] - 3 * X[:, 2] + np.random.randn(100) * 2)  # y = X1 + 2*X2 - 3*X3 + noise
         df = pd.DataFrame({"X1": X[:, 0], "X2": X[:, 1], "X3": X[:, 2], "y": y})
-        df.to_csv("3 digit Linear.csv", index=False)
+        df.to_csv("3 digit Linear.csv", index=False, float_format='%.2f')
         messagebox.showinfo("Info", "Three-column linear regression data generation is complete.")
 
     def display_data(self):
