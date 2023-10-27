@@ -62,7 +62,7 @@ class MLGui:
         data_menu.add_command(label="Generate Synthetic Data", command=self.make_data)
         data_menu.add_command(label="Generate Ultrasonic Data", command=self.generate_ultrasonic_csv)
         data_menu.add_command(label="Generate Linear Regression Data(2)", command=self.doubleLinearRegressData)
-        data_menu.add_command(label="Generate Linear Regression Data(#)", command=self.tripleLinearRegressData)
+        data_menu.add_command(label="Generate Linear Regression Data(3)", command=self.tripleLinearRegressData)
 
         #model menu
         model_menu = tk.Menu(menubar, tearoff=0)
@@ -88,14 +88,6 @@ class MLGui:
         )
         title_label.grid(row=0, column=0, columnspan=2, pady=10)
 
-        # Create a frame to display data
-        data_frame = tk.Frame(frame)
-        data_frame.grid(row=1, column=0, columnspan=2)
-
-        self.data_tree = Treeview(data_frame, columns=("X", "y"), show="headings")
-        self.data_tree.heading("X", text="X")
-        self.data_tree.heading("y", text="y")
-        self.data_tree.pack(padx=20, pady=20)
     
     def open_csv(self):
         file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
@@ -111,6 +103,38 @@ class MLGui:
                 self.display_csv_data(df)
             except Exception as e:
                 messagebox.showerror("Error", f"Error loading CSV file: {str(e)}")
+
+    def show_data_statistics(self):
+        if self.X is not None and self.y is not None:
+            try:
+                # Compute basic statistics on self.X and self.y
+                x_mean = self.X.mean()
+                y_mean = self.y.mean()
+                x_std = self.X.std()
+                y_std = self.y.std()
+                x_median = np.median(self.X)
+                y_median = np.median(self.y)
+                x_variance = np.var(self.X)
+                y_variance = np.var(self.y)
+                x_min = np.min(self.X)
+                y_min = np.min(self.y)
+                x_max = np.max(self.X)
+                y_max = np.max(self.y)
+
+                # Display the statistics in a messagebox
+                statistics_message = (
+                    f"X Mean: {x_mean:.2f}\nY Mean: {y_mean:.2f}\n"
+                    f"X Std: {x_std:.2f}\nY Std: {y_std:.2f}\n"
+                    f"X Median: {x_median:.2f}\nY Median: {y_median:.2f}\n"
+                    f"X Variance: {x_variance:.2f}\nY Variance: {y_variance:.2f}\n"
+                    f"X Min: {x_min:.2f}\nY Min: {y_min:.2f}\n"
+                    f"X Max: {x_max:.2f}\nY Max: {y_max:.2f}"
+                )
+                messagebox.showinfo("Data Statistics", statistics_message)
+            except Exception as e:
+                messagebox.showerror("Error", f"Error calculating data statistics: {str(e)}")
+        else:
+            messagebox.showwarning("Warning", "No data available for statistics. Generate or load data first.")
 
     def show_data_statistics(self):
         if self.X is not None and self.y is not None:
@@ -149,11 +173,18 @@ class MLGui:
         self.X, self.y = make_blobs(
             n_samples=100, centers=3, n_features=2, random_state=0
         )
-        print("Making data is done....")
+       # print("Making data is done....")
         messagebox.showinfo("Info", "Data generation is complete.")
-        self.display_data()
 
-    def generate_ultrasonic_csv(self,):
+         # Check if self.data is already set and unset it
+        if self.data is not None:
+            self.data = None
+
+         # Create a DataFrame from the X and y data
+        self.data = pd.DataFrame({'X': self.X[:, 0], 'y': self.X[:, 1]})
+        self.display_csv_data(self.data)
+
+    def generate_ultrasonic_csv(self):
         data = []
         data.append(["Distance", "Command"])
         for i in range(self.numValues):
@@ -166,9 +197,16 @@ class MLGui:
                 command = "safe"
             data.append([distance, command])
             
-        with open('Ultrasonic Data.csv', "w", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerows(data)
+         # Create a DataFrame from the generated data
+        self.data= pd.DataFrame(data[1:], columns=data[0])
+
+        # Save the DataFrame as a CSV file
+        self.data.to_csv("Ultrasonic Data.csv", index=False)
+
+        # Display the data using the display_csv_data function
+        self.display_csv_data(self.data)
+
+        # Display the data using the display_csv_data function
         messagebox.showinfo("Data Generation", "Ultrasonic data generation is complete.")
         print(f"CSV file '{'Ultrasonic Data.csv'}' generated successfully!")
 
@@ -177,8 +215,11 @@ class MLGui:
         np.random.seed(42)  # For reproducibility
         X = np.random.rand(100, 1) * 10
         y = 2 * X + 3 + np.random.randn(100, 1) * 2  # y = 2*X + 3 + noise
-        df = pd.DataFrame({"X": X.flatten(), "Y": y.flatten()})
-        df.to_csv("2 digit Linear.csv", index=False, float_format='%.2f')
+        self.data = pd.DataFrame({"X": X.flatten(), "Y": y.flatten()})
+        self.data.to_csv("2 digit Linear.csv", index=False, float_format='%.2f')
+
+        # Display the data using the display_csv_data function
+        self.display_csv_data(self.data)
         messagebox.showinfo("Info", "Two-column linear regression data generation is complete.")
 
 
@@ -187,25 +228,13 @@ class MLGui:
         np.random.seed(42)  # For reproducibility
         X = np.random.rand(100, 3) * 10
         y = (X[:, 0] + 2 * X[:, 1] - 3 * X[:, 2] + np.random.randn(100) * 2)  # y = X1 + 2*X2 - 3*X3 + noise
-        df = pd.DataFrame({"X1": X[:, 0], "X2": X[:, 1], "X3": X[:, 2], "y": y})
-        df.to_csv("3 digit Linear.csv", index=False, float_format='%.2f')
+        self.data = pd.DataFrame({"X1": X[:, 0], "X2": X[:, 1], "X3": X[:, 2], "y": y})
+        self.data.to_csv("3 digit Linear.csv", index=False, float_format='%.2f')
+
+        # Display the data using the display_csv_data function
+        self.display_csv_data(self.data)
+
         messagebox.showinfo("Info", "Three-column linear regression data generation is complete.")
-
-    def display_data(self):
-        # Clear any existing data
-        for row in self.data_tree.get_children():
-            self.data_tree.delete(row)
-        
-        #if self.data is defined but not x and y then put row in tree
-        if self.data is not None:
-            # If there are more than 2 columns, display each column as separate values
-            for index, row in self.data.iterrows():
-                self.data_tree.insert("", "end", values=row)
-
-        else:
-            if self.X is not None and self.y is not None:
-                for x_val, y_val in zip(self.X, self.y):
-                    self.data_tree.insert("", "end", values=(x_val, y_val))
 
     def train_model(self):
         if self.X is not None and self.y is not None:
@@ -340,15 +369,6 @@ class MLGui:
 
     def plot_data_vs_model(self):
         messagebox.showinfo("Info", "Plot Data vs Model function not implemented yet.")
-
-    def generate_ultrasonic_data(self):
-        messagebox.showinfo("Info", "Generate Ultrasonic Data function not implemented yet.")
-
-    def generate_two_column_data(self):
-        messagebox.showinfo("Info", "Generate Two Column Number Data function not implemented yet.")
-
-    def generate_three_column_data(self):
-        messagebox.showinfo("Info", "Generate Three Column Number Data function not implemented yet.")
 
     def select_model(self):
         messagebox.showinfo("Info", "Select Model function not implemented yet.")
