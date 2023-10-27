@@ -28,17 +28,38 @@ class MLGui:
 
         file_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Open CSV", command=self.open_csv)
+        file_menu.add_command(label="IMport CSV file", command=self.open_csv)
         file_menu.add_command(label="Data Statistics", command=self.show_data_statistics)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.topLevel.quit)
 
-        action_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="Actions", menu=action_menu)
-        action_menu.add_command(label="Generate Synthetic Data", command=self.make_data)
-        action_menu.add_command(label="Train Model", command=self.train_model)
-        action_menu.add_command(label="Convert for Arduino", command=self.convert)
-        action_menu.add_command(label="Save Model", command=self.store_model)
+        #visualisations menus
+        visualizations_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Visualizations (External Window)", menu=visualizations_menu)
+        visualizations_menu.add_command(label="Plot Data", command=self.plot_data)
+        visualizations_menu.add_command(label="Plot Model", command=self.plot_model)
+        visualizations_menu.add_command(label="Plot Data vs Model", command=self.plot_data_vs_model)
+
+        #data menu
+        data_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Data", menu=data_menu)
+        data_menu.add_command(label="Generate Synthetic Data", command=self.make_data)
+        data_menu.add_command(label="Generate Ultrasonic Data", command=self.generate_ultrasonic_data)
+        data_menu.add_command(label="Generate Two Column Number Data", command=self.generate_two_column_data)
+        data_menu.add_command(label="Generate Three Column Number Data", command=self.generate_three_column_data)
+
+        #model menu
+        model_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Model", menu=model_menu)
+        model_menu.add_command(label="Train Model", command=self.train_model)
+        model_menu.add_command(label="Select Model", command=self.select_model)
+        model_menu.add_command(label="Set Model Parameters (Into SQL DB)", command=self.set_model_parameters)
+
+        #microntorllers
+        export_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Export", menu=export_menu)
+        export_menu.add_command(label="Convert for Arduino", command=self.convert)
+        export_menu.add_command(label="Save Model", command=self.store_model)
 
     def create_gui(self):
         frame = tk.Frame(self.topLevel)
