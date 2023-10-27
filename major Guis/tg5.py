@@ -8,6 +8,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter.ttk import Combobox
+import csv
+import random
+from decimal import Decimal
+import numpy as np
+import os
+from urllib.parse import urlparse
 
 
 class MLGui:
@@ -53,9 +59,9 @@ class MLGui:
         data_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Data", menu=data_menu)
         data_menu.add_command(label="Generate Synthetic Data", command=self.make_data)
-        data_menu.add_command(label="Generate Ultrasonic Data", command=self.generate_ultrasonic_data)
-        data_menu.add_command(label="Generate Two Column Number Data", command=self.generate_two_column_data)
-        data_menu.add_command(label="Generate Three Column Number Data", command=self.generate_three_column_data)
+        data_menu.add_command(label="Generate Ultrasonic Data", command=self.generate_ultrasonic_csv)
+        data_menu.add_command(label="Generate Linear Regression Data(2)", command=self.doubleLinearRegressData)
+        data_menu.add_command(label="Generate Linear Regression Data(#)", command=self.tripleLinearRegressData)
 
         #model menu
         model_menu = tk.Menu(menubar, tearoff=0)
@@ -144,6 +150,42 @@ class MLGui:
         )
         print("Making data is done....")
         self.display_data()
+
+    def generate_ultrasonic_csv(self,numvalues):
+        data = []
+        self.numValues= numvalues
+        data.append(["Distance", "Command"])
+
+        for i in range(self.numValues):
+            distance = Decimal(random.uniform(10, 50)).quantize(Decimal("0.00"))  # Random distance between 10 and 50 cm
+            if distance < 20:
+                command = "bad"
+            elif distance < 29:
+                command = "good"
+            else:
+                command = "safe"
+            data.append([distance, command])
+            
+        with open(self.filename + '.csv', "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerows(data)
+        print(f"CSV file '{self.filename + '.csv'}' generated successfully!")
+
+    # Generate sample data
+    def doubleLinearRegressData(self):
+        np.random.seed(42)  # For reproducibility
+        X = np.random.rand(100, 1) * 10
+        y = 2 * X + 3 + np.random.randn(100, 1) * 2  # y = 2*X + 3 + noise
+        df = pd.DataFrame({"X": X.flatten(), "Y": y.flatten()})
+        df.to_csv("2 digit Linear.csv", index=False)
+
+    def tripleLinearRegressData(self):
+        # Generate sample data
+        np.random.seed(42)  # For reproducibility
+        X = np.random.rand(100, 3) * 10
+        y = (X[:, 0] + 2 * X[:, 1] - 3 * X[:, 2] + np.random.randn(100) * 2)  # y = X1 + 2*X2 - 3*X3 + noise
+        df = pd.DataFrame({"X1": X[:, 0], "X2": X[:, 1], "X3": X[:, 2], "y": y})
+        df.to_csv("3 digit Linear.csv", index=False)
 
     def display_data(self):
         # Clear any existing data
