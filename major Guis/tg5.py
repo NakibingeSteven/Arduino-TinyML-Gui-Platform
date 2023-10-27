@@ -150,6 +150,7 @@ class MLGui:
             n_samples=100, centers=3, n_features=2, random_state=0
         )
         print("Making data is done....")
+        messagebox.showinfo("Info", "Data generation is complete.")
         self.display_data()
 
     def generate_ultrasonic_csv(self,):
@@ -168,7 +169,7 @@ class MLGui:
         with open('Ultrasonic Data.csv', "w", newline="") as file:
             writer = csv.writer(file)
             writer.writerows(data)
-        messagebox.showinfo(f"CSV file '{'Ultrasonic Data.csv'}' generated successfully!")
+        messagebox.showinfo("Data Generation", "Ultrasonic data generation is complete.")
         print(f"CSV file '{'Ultrasonic Data.csv'}' generated successfully!")
 
     # Generate sample data
@@ -178,6 +179,8 @@ class MLGui:
         y = 2 * X + 3 + np.random.randn(100, 1) * 2  # y = 2*X + 3 + noise
         df = pd.DataFrame({"X": X.flatten(), "Y": y.flatten()})
         df.to_csv("2 digit Linear.csv", index=False)
+        messagebox.showinfo("Info", "Two-column linear regression data generation is complete.")
+
 
     def tripleLinearRegressData(self):
         # Generate sample data
@@ -186,6 +189,7 @@ class MLGui:
         y = (X[:, 0] + 2 * X[:, 1] - 3 * X[:, 2] + np.random.randn(100) * 2)  # y = X1 + 2*X2 - 3*X3 + noise
         df = pd.DataFrame({"X1": X[:, 0], "X2": X[:, 1], "X3": X[:, 2], "y": y})
         df.to_csv("3 digit Linear.csv", index=False)
+        messagebox.showinfo("Info", "Three-column linear regression data generation is complete.")
 
     def display_data(self):
         # Clear any existing data
