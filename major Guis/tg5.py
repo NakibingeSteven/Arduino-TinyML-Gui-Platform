@@ -64,6 +64,13 @@ class MLGui:
         data_menu.add_command(label="Generate Linear Regression Data(2)", command=self.doubleLinearRegressData)
         data_menu.add_command(label="Generate Linear Regression Data(3)", command=self.tripleLinearRegressData)
 
+        #preparation menu
+        preparation_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Preparation", menu=preparation_menu)
+        preparation_menu.add_command(label="Train-Test Split", command=self.train_test_split_data)
+        preparation_menu.add_command(label="Cross-Validation Split", command=self.cross_validation_split_data)
+
+
         #model menu
         model_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Model", menu=model_menu)
@@ -236,6 +243,31 @@ class MLGui:
                 print("Model saved to:", model_path)
         else:
             print("No model to save. Train and convert a model first.")
+    
+    # Define methods for data splitting operations:
+    def train_test_split_data(self):
+        # Implement the train-test data splitting logic here
+        # You can use scikit-learn's train_test_split function
+        # For example:
+        from sklearn.model_selection import train_test_split
+        X = self.data.iloc[:, :-1]  # Features (all columns except the last one)
+        y = self.data.iloc[:, -1]  # Target variable (last column)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+        # Now you can work with X_train, X_test, y_train, y_test
+        pass
+
+    def cross_validation_split_data(self):
+        # Implement the cross-validation data splitting logic here
+        # You can use scikit-learn's cross-validation techniques
+        # For example, k-fold cross-validation:
+        from sklearn.model_selection import KFold
+        kf = KFold(n_splits=5)
+        for train_index, test_index in kf.split(self.data):
+            X_train, X_test = self.data.iloc[train_index, :-1], self.data.iloc[test_index, :-1]
+            y_train, y_test = self.data.iloc[train_index, -1], self.data.iloc[test_index, -1]
+            # Now you can work with X_train, X_test, y_train, y_test for each fold
+        pass
+
     
     def plot_data(self):
         if self.X is not None:
