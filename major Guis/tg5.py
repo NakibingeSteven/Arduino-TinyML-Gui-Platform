@@ -26,6 +26,18 @@ class MLGui:
         style = Style()
         style.configure("TButton", font=("Helvetica", 12))
 
+
+        # Initialize the classifier
+        self.classifier = None
+        # Create a list of available classifiers
+        self.classifiers = {
+            "Random Forest": RandomForestClassifier(n_estimators=10),
+            "Decision Tree": DecisionTreeClassifier(),
+            "SVM": SVC(kernel="linear"),
+            "K-Nearest Neighbors": KNeighborsClassifier(n_neighbors=5),
+            # Add more classifiers here
+        }
+
         #for holding data
         self.data = None
 
