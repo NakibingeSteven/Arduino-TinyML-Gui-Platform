@@ -2,7 +2,11 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter.ttk import Style, Treeview
 from sklearn.datasets import make_blobs
-from everywhereml.sklearn.ensemble import RandomForestClassifier
+#from everywhereml.sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 import tkinter.messagebox as messagebox
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -29,13 +33,26 @@ class MLGui:
 
         # Initialize the classifier
         self.classifier = None
-        # Create a list of available classifiers
+
+         # Create a list of available classifiers with their corresponding hyperparameters
         self.classifiers = {
-            "Random Forest": RandomForestClassifier(n_estimators=10),
-            "Decision Tree": DecisionTreeClassifier(),
-            "SVM": SVC(kernel="linear"),
-            "K-Nearest Neighbors": KNeighborsClassifier(n_neighbors=5),
-            # Add more classifiers here
+            "Random Forest": {
+                "model": RandomForestClassifier(n_estimators=10),
+                "hyperparameters": {"n_estimators": 10, "max_depth": None, "min_samples_split": 2},
+            },
+            "Decision Tree": {
+                "model": DecisionTreeClassifier(),
+                "hyperparameters": {"max_depth": None, "min_samples_split": 2},
+            },
+            "SVM": {
+                "model": SVC(kernel="linear"),
+                "hyperparameters": {"kernel": "linear", "C": 1.0},
+            },
+            "K-Nearest Neighbors": {
+                "model": KNeighborsClassifier(n_neighbors=5),
+                "hyperparameters": {"n_neighbors": 5, "weights": "uniform"},
+            },
+            # Add more classifiers with their hyperparameters here
         }
 
         #for holding data
@@ -75,7 +92,6 @@ class MLGui:
         menubar.add_cascade(label="Visualizations", menu=visualizations_menu)
         visualizations_menu.add_command(label="Plot Data", command=self.plot_data)
         visualizations_menu.add_command(label="Plot Model", command=self.plot_model)
-        visualizations_menu.add_command(label="Plot Data vs Model", command=self.plot_data_vs_model)
 
         #data menu
         data_menu = tk.Menu(menubar, tearoff=0)
@@ -88,18 +104,15 @@ class MLGui:
         #preparation menu
         preparation_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Preparation", menu=preparation_menu)
-         preparation_menu.add_command(label="Encode String Data")
+        preparation_menu.add_command(label="Encode String Data")
         preparation_menu.add_command(label="Train-Test Split", command=self.train_test_split_data)
         preparation_menu.add_command(label="Show Train Data", command=self.show_train_data)
         preparation_menu.add_command(label="Show Test data", command=self.show_test_data)
-
-
 
         #model menu
         model_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Model", menu=model_menu)
         model_menu.add_command(label="Train Model", command=self.train_model)
-        model_menu.add_command(label="Select Model", command=self.select_model)
         model_menu.add_command(label="Set Model Parameters (Into SQL DB)", command=self.set_model_parameters)
 
         #microntorllers
@@ -118,6 +131,13 @@ class MLGui:
             frame, text="Machine Learning Trainer", font=("Helvetica", 16)
         )
         title_label.grid(row=0, column=0, columnspan=2, pady=10)
+
+        # Create a Combobox for selecting the classifier
+        self.classifier_var = tk.StringVar()
+        self.classifier_combobox = Combobox(self.topLevel, textvariable=self.classifier_var)
+        self.classifier_combobox["values"] = list(self.classifiers.keys())
+        self.classifier_combobox.current(0)  # Set the default classifier
+        self.classifier_combobox.pack(padx=10, pady=5)
 
     
     def open_csv(self):
@@ -234,14 +254,69 @@ class MLGui:
 
         messagebox.showinfo("Info", "Three-column linear regression data generation is complete.")
 
+    def set_model_parameters(self):
+        selected_classifier = self.classifier_combobox.get()
+        if selected_classifier in self.classifiers:
+            # Get the selected classifier's hyperparameters
+            hyperparameters = self.classifiers[selected_classifier]["hyperparameters"]
+
+            # Create a dialog box for setting hyperparameters
+            param_window = tk.Toplevel(self.topLevel)
+            param_window.title(f"Set {selected_classifier} Hyperparameters")
+
+            # Create input fields for hyperparameters
+            param_entries = {}
+            for param, default_value in hyperparameters.items():
+                param_label = tk.Label(param_window, text=param)
+                param_label.pack(padx=10, pady=5)
+                param_entries[param] = tk.Entry(param_window)
+                param_entries[param].insert(0, str(default_value))
+                param_entries[param].pack(padx=10, pady=5)
+
+            def set_hyperparameters():
+                # Retrieve hyperparameters from the input fields
+                new_hyperparameters = {
+                    param: float(param_entries[param].get()) for param in hyperparameters
+                }
+
+                # Update the selected classifier's hyperparameters
+                self.classifiers[selected_classifier]["hyperparameters"] = new_hyperparameters
+
+                # Close the parameter setting dialog
+                param_window.destroy()
+
+            # Create a button to confirm the hyperparameters
+            param_button = tk.Button(param_window, text="Set Hyperparameters", command=set_hyperparameters)
+            param_button.pack(padx=10, pady=10)
+
+        else:
+            messagebox.showerror("Error", "Invalid classifier selection.")
+
+
+
     def train_model(self):
         if self.X is not None and self.y is not None:
-            print("Training is taking place .... ")
-            self.classifier = RandomForestClassifier(n_estimators=10)
-            self.classifier.fit(self.X, self.y)
-            print("Training is done")
+            selected_classifier = self.classifier_combobox.get()
+            if selected_classifier in self.classifiers:
+                # Get the selected classifier and its hyperparameters
+                classifier_data = self.classifiers[selected_classifier]
+                classifier_model = classifier_data["model"]
+                hyperparameters = classifier_data["hyperparameters"]
+
+                # Update the classifier model with the user-defined hyperparameters
+                classifier_model.set_params(**hyperparameters)
+
+                # Use the classifier with the updated hyperparameters
+                self.classifier = classifier_model
+                self.classifier.fit(self.X, self.y)
+                print(f"Training {selected_classifier} model is done with hyperparameters: {hyperparameters}")
+
+            else:
+                messagebox.showerror("Error", "Invalid classifier selection.")
         else:
             print("No data to train on. Generate data first.")
+
+
 
     def convert(self):
         if self.classifier:
@@ -394,16 +469,6 @@ class MLGui:
     
     def plot_model(self):
         messagebox.showinfo("Info", "Plot Model function not implemented yet.")
-
-    def plot_data_vs_model(self):
-        messagebox.showinfo("Info", "Plot Data vs Model function not implemented yet.")
-
-    def select_model(self):
-        messagebox.showinfo("Info", "Select Model function not implemented yet.")
-
-    def set_model_parameters(self):
-        messagebox.showinfo("Info", "Set Model Parameters (Into SQL DB) function not implemented yet.")
-
 
     def run(self):
         self.topLevel.mainloop()
