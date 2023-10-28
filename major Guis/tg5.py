@@ -14,6 +14,7 @@ from decimal import Decimal
 import numpy as np
 import os
 from urllib.parse import urlparse
+from sklearn.model_selection import train_test_split
 
 
 class MLGui:
@@ -28,10 +29,18 @@ class MLGui:
         #for holding data
         self.data = None
 
-        #for breaking down data
+        #for splittting data
+        self.X_train = None
+        self.X_test = None
+        self.y_train = None
+        self.y_test =None
+
+        #for breakinf down he data
         self.X = None
         self.y = None
         self.classifier = None
+
+        #exporting arduino code data variable
         self.arduinoModel = None
         self.numValues = 1000;
 
@@ -68,7 +77,9 @@ class MLGui:
         preparation_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Preparation", menu=preparation_menu)
         preparation_menu.add_command(label="Train-Test Split", command=self.train_test_split_data)
-        preparation_menu.add_command(label="Cross-Validation Split", command=self.cross_validation_split_data)
+        preparation_menu.add_command(label="Show Train Data", command=self.show_train_data)
+         preparation_menu.add_command(label="Show Test data", command=self.show_test_data)
+
 
 
         #model menu
@@ -246,29 +257,36 @@ class MLGui:
     
     # Define methods for data splitting operations:
     def train_test_split_data(self):
-        # Implement the train-test data splitting logic here
-        # You can use scikit-learn's train_test_split function
-        # For example:
-        from sklearn.model_selection import train_test_split
-        X = self.data.iloc[:, :-1]  # Features (all columns except the last one)
-        y = self.data.iloc[:, -1]  # Target variable (last column)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-        # Now you can work with X_train, X_test, y_train, y_test
-        pass
-
-    def cross_validation_split_data(self):
-        # Implement the cross-validation data splitting logic here
-        # You can use scikit-learn's cross-validation techniques
-        # For example, k-fold cross-validation:
-        from sklearn.model_selection import KFold
-        kf = KFold(n_splits=5)
-        for train_index, test_index in kf.split(self.data):
-            X_train, X_test = self.data.iloc[train_index, :-1], self.data.iloc[test_index, :-1]
-            y_train, y_test = self.data.iloc[train_index, -1], self.data.iloc[test_index, -1]
-            # Now you can work with X_train, X_test, y_train, y_test for each fold
-        pass
-
+        if self.data is not None:
+            # Implement the train-test data splitting logic here
+            self.X = self.data.iloc[:, :-1]  # Features (all columns except the last one)
+            self.y = self.data.iloc[:, -1]  # Target variable (last column)
+            self.X_train, self.X_test, self.y_train,self.y_test = train_test_split(self.X,self.y, test_size=0.2)
+            self.display_csv_data(self.X_train)
+            print("X_train:", self.X_train)
+            print("X_test:", self.X_test)
+            print("y_train:",self.y_train)
+            print("y_test:",self.y_test)
+        else:
+             messagebox.showerror("Error", "No data available for splitting. Generate or load data first.")
     
+    # Define methods for showing data splitting operations:
+    def show_train_data(self):
+        if self.X_train is not None:
+            self.display_csv_data(self.X_train)
+            self.display_csv_data(self.y_train)
+        else:
+             messagebox.showerror("Error", "No y train data splitted.First split data.")
+
+    # Define methods for showing data splitting operations:
+    def show_test_data(self):
+        if self.y_test is not None:
+            self.display_csv_data(self.X_test)
+            self.display_csv_data(self.y_test)
+        else:
+             messagebox.showerror("Error", "No y train data splitted.First split data.")
+
+
     def plot_data(self):
         if self.X is not None:
             # Create a small window to select the plot type
