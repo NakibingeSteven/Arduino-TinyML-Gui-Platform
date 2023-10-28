@@ -76,9 +76,10 @@ class MLGui:
         #preparation menu
         preparation_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Preparation", menu=preparation_menu)
+         preparation_menu.add_command(label="Encode String Data")
         preparation_menu.add_command(label="Train-Test Split", command=self.train_test_split_data)
         preparation_menu.add_command(label="Show Train Data", command=self.show_train_data)
-         preparation_menu.add_command(label="Show Test data", command=self.show_test_data)
+        preparation_menu.add_command(label="Show Test data", command=self.show_test_data)
 
 
 
@@ -262,11 +263,10 @@ class MLGui:
             self.X = self.data.iloc[:, :-1]  # Features (all columns except the last one)
             self.y = self.data.iloc[:, -1]  # Target variable (last column)
             self.X_train, self.X_test, self.y_train,self.y_test = train_test_split(self.X,self.y, test_size=0.2)
-            self.display_csv_data(self.X_train)
-            print("X_train:", self.X_train)
-            print("X_test:", self.X_test)
-            print("y_train:",self.y_train)
-            print("y_test:",self.y_test)
+            #print("X_train:", self.X_train)
+            #print("X_test:", self.X_test)
+            #print("y_train:",self.y_train)
+            #print("y_test:",self.y_test)
         else:
              messagebox.showerror("Error", "No data available for splitting. Generate or load data first.")
     
