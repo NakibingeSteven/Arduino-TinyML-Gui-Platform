@@ -19,6 +19,7 @@ import numpy as np
 import os
 from urllib.parse import urlparse
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder  # Add this import
 import joblib
 
 
@@ -130,7 +131,7 @@ class MLGui:
         export_menu.add_command(label="Export Model for Arduino", command=self.convert)
         export_menu.add_command(label="Export Model and labels", )
         export_menu.add_command(label="Export Model Only",)
-        export_menu.add_command(label="Save Model", command=self.store_model)
+        export_menu.add_command(label="Save Model", command=self.store_model_arduino)
 
     def create_gui(self):
         frame = tk.Frame(self.topLevel)
@@ -402,7 +403,7 @@ class MLGui:
             print(f"Error loading label encoders: {str(e)}")
 
 
-    def store_model(self):
+    def store_model_arduino(self):
         if self.arduinoModel:
             model_path = filedialog.asksaveasfilename(
                 defaultextension=".h",
