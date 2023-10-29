@@ -22,7 +22,7 @@ from urllib.parse import urlparse
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder  # Add this import
 import joblib
-
+from micromlgen import port
 
 class MLGui:
     def __init__(self):
@@ -414,16 +414,6 @@ class MLGui:
         else:
             print("No data to train on. Generate data first.")
 
-    def convert(self):
-        if self.classifier:
-            print("Converting initializing.....")
-            self.arduinoModel = self.classifier.to_arduino(
-                instance_name="blobClassifier"
-            )
-            print(self.arduinoModel)
-            print("Converting is done")
-        else:
-            print("No model to convert. Train a model first.")
 
     def load_model(self):
         model_path = filedialog.askopenfilename(filetypes=[("Model Files", "*.joblib")])
@@ -473,6 +463,17 @@ class MLGui:
         else:
             print("No model to save. Train and convert a model first.")
 
+
+    def convert(self): #make model arduino compatible
+        if self.classifier:
+            print("Converting initializing.....")
+            self.arduinoModel = port(self.classifier)
+            print(self.arduinoModel)
+            print("Converting is done")
+        else:
+            print("No model to convert. Train a model first.")
+
+
     # Define methods for data splitting operations:
     def train_test_split_data(self):
         if self.data is not None:
@@ -488,6 +489,7 @@ class MLGui:
             # print("X_test:", self.X_test)
             # print("y_train:",self.y_train)
             # print("y_test:",self.y_test)
+            print("Data is split into X and y")
         else:
             messagebox.showerror(
                 "Error", "No data available for splitting. Generate or load data first."
