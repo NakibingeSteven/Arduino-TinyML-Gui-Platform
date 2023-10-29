@@ -19,6 +19,7 @@ import numpy as np
 import os
 from urllib.parse import urlparse
 from sklearn.model_selection import train_test_split
+import joblib
 
 
 class MLGui:
@@ -71,7 +72,10 @@ class MLGui:
 
         #exporting arduino code data variable
         self.arduinoModel = None
-        self.numValues = 1000;
+        self.numValues = 1000
+
+        # Initialize label encoders
+        self.label_encoders = {}
 
         self.create_menubar()
         self.create_gui()
@@ -104,7 +108,8 @@ class MLGui:
         #preparation menu
         preparation_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Preparation", menu=preparation_menu)
-        preparation_menu.add_command(label="Encode String Data")
+        preparation_menu.add_command(label="Encode String Data",command=self.encode_data)
+        preparation_menu.add_command(label="Decode String Data",command=self.decode_data)
         preparation_menu.add_command(label="Train-Test Split", command=self.train_test_split_data)
         preparation_menu.add_command(label="Show Train Data", command=self.show_train_data)
         preparation_menu.add_command(label="Show Test data", command=self.show_test_data)
@@ -112,6 +117,10 @@ class MLGui:
         #model menu
         model_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Model", menu=model_menu)
+        # Add a "Load Model" menu option
+        model_menu.add_command(label="Load Model", command=self.load_model)
+        # Add a "Load Label Encoders" menu option
+        model_menu.add_command(label="Load Label Encoders", command=self.load_label_encoders)
         model_menu.add_command(label="Train Model", command=self.train_model)
         model_menu.add_command(label="Set Model Parameters (Into SQL DB)", command=self.set_model_parameters)
 
@@ -291,8 +300,35 @@ class MLGui:
 
         else:
             messagebox.showerror("Error", "Invalid classifier selection.")
+ 
+    def encode_data(self):
+        if self.data is not None:
+            data_updated = False
+            for column in self.data.columns:
+                if self.data[column].dtype == 'object':
+                    le = LabelEncoder()
+                    self.data[column] = le.fit_transform(self.data[column])
+                    self.label_encoders[column] = le
+                    data_updated = True
+            if data_updated:
+                self.display_csv_data(self.data)
+                messagebox.showinfo("Info", "Data encoded successfully.")
+            else:
+                messagebox.showinfo("Info", "No string data found in the dataset.")
 
 
+    def decode_data(self):
+        if self.data is not None:
+            data_updated = False
+            for column, label_encoder in self.label_encoders.items():
+                self.data[column] = label_encoder.inverse_transform(self.data[column])
+                data_updated = True
+
+            if data_updated:
+                self.display_csv_data(self.data)
+                messagebox.showinfo("Info", "Data decoded successfully.")
+            else:
+                messagebox.showinfo("Info", "No label encoders found. Data was not decoded.")
 
     def train_model(self):
         if self.X is not None and self.y is not None:
@@ -328,6 +364,43 @@ class MLGui:
             print("Converting is done")
         else:
             print("No model to convert. Train a model first.")
+    
+    def load_model(self):
+        model_path = filedialog.askopenfilename(
+            filetypes=[("Model Files", "*.joblib")]
+        )
+        if model_path:
+            self.load_model_from_file(model_path)
+
+    def load_label_encoders(self):
+        encoder_path = filedialog.askopenfilename(
+            filetypes=[("Label Encoder Files", "*.joblib")]
+        )
+        if encoder_path:
+            self.load_label_encoders_from_file(encoder_path)
+
+    def load_model_from_file(self, model_path):
+        try:
+            loaded_model = joblib.load(model_path)
+            if "model" in loaded_model:
+                self.classifier = loaded_model["model"]
+                print("Model loaded successfully from:", model_path)
+            else:
+                print("No valid model found in the file.")
+        except Exception as e:
+            print(f"Error loading the model: {str(e)}")
+
+    def load_label_encoders_from_file(self, encoder_path):
+        try:
+            loaded_encoders = joblib.load(encoder_path)
+            if "label_encoders" in loaded_encoders:
+                self.label_encoders = loaded_encoders["label_encoders"]
+                print("Label encoders loaded successfully from:", encoder_path)
+            else:
+                print("No valid label encoders found in the file.")
+        except Exception as e:
+            print(f"Error loading label encoders: {str(e)}")
+
 
     def store_model(self):
         if self.arduinoModel:
