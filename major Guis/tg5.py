@@ -29,7 +29,7 @@ class MLGui:
     def __init__(self):
         self.topLevel = tk.Tk()
         self.topLevel.geometry("800x600")
-        self.topLevel.title("Machine Learning Trainer")
+        self.topLevel.title("Machine Learning Trainer gUI")
 
         style = Style()
         style.configure("TButton", font=("Helvetica", 12))
@@ -504,8 +504,8 @@ class MLGui:
             )
             # print("X_train:", self.X_train)
             # print("X_test:", self.X_test)
-            # print("y_train:",self.y_train)
-            # print("y_test:",self.y_test)
+            print("y_train:",self.y_train)
+            print("y_test:",self.y_test)
             print("Data is split into X and y")
         else:
             messagebox.showerror(
