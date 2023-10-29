@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter.ttk import Style, Treeview
 from sklearn.datasets import make_blobs
-#from everywhereml.sklearn.ensemble import RandomForestClassifier
+
+# from everywhereml.sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -32,15 +33,18 @@ class MLGui:
         style = Style()
         style.configure("TButton", font=("Helvetica", 12))
 
-
         # Initialize the classifier
         self.classifier = None
 
-         # Create a list of available classifiers with their corresponding hyperparameters
+        # Create a list of available classifiers with their corresponding hyperparameters
         self.classifiers = {
             "Random Forest": {
                 "model": RandomForestClassifier(n_estimators=10),
-                "hyperparameters": {"n_estimators": 10, "max_depth": None, "min_samples_split": 2},
+                "hyperparameters": {
+                    "n_estimators": 10,
+                    "max_depth": None,
+                    "min_samples_split": 2,
+                },
             },
             "Decision Tree": {
                 "model": DecisionTreeClassifier(),
@@ -57,23 +61,26 @@ class MLGui:
             # Add more classifiers with their hyperparameters here
         }
 
-        #for holding data
+        # for holding data
         self.data = None
 
-        #for splittting data
+        # for splittting data
         self.X_train = None
         self.X_test = None
         self.y_train = None
-        self.y_test =None
+        self.y_test = None
 
-        #for breakinf down he data
+        # for breakinf down he data
         self.X = None
         self.y = None
         self.classifier = None
 
-        #exporting arduino code data variable
+        # exporting arduino code data variable
         self.arduinoModel = None
         self.numValues = 1000
+
+        # the model parameters
+        self.model = None
 
         # Initialize label encoders
         self.label_encoders = {}
@@ -88,49 +95,80 @@ class MLGui:
         file_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="File", menu=file_menu)
         file_menu.add_command(label="IMport CSV file", command=self.open_csv)
-        file_menu.add_command(label="Data Statistics", command=self.show_data_statistics)
+        file_menu.add_command(
+            label="Data Statistics", command=self.show_data_statistics
+        )
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.topLevel.quit)
 
-        #visualisations menus
+        # visualisations menus
         visualizations_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Visualizations", menu=visualizations_menu)
         visualizations_menu.add_command(label="Plot Data", command=self.plot_data)
         visualizations_menu.add_command(label="Plot Model", command=self.plot_model)
 
-        #data menu
+        # data menu
         data_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Data", menu=data_menu)
         data_menu.add_command(label="Generate Synthetic Data", command=self.make_data)
-        data_menu.add_command(label="Generate Ultrasonic Data", command=self.generate_ultrasonic_csv)
-        data_menu.add_command(label="Generate Linear Regression Data(2)", command=self.doubleLinearRegressData)
-        data_menu.add_command(label="Generate Linear Regression Data(3)", command=self.tripleLinearRegressData)
+        data_menu.add_command(
+            label="Generate Ultrasonic Data", command=self.generate_ultrasonic_csv
+        )
+        data_menu.add_command(
+            label="Generate Linear Regression Data(2)",
+            command=self.doubleLinearRegressData,
+        )
+        data_menu.add_command(
+            label="Generate Linear Regression Data(3)",
+            command=self.tripleLinearRegressData,
+        )
 
-        #preparation menu
+        # preparation menu
         preparation_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Preparation", menu=preparation_menu)
-        preparation_menu.add_command(label="Encode String Data",command=self.encode_data)
-        preparation_menu.add_command(label="Decode String Data",command=self.decode_data)
-        preparation_menu.add_command(label="Train-Test Split", command=self.train_test_split_data)
-        preparation_menu.add_command(label="Show Train Data", command=self.show_train_data)
-        preparation_menu.add_command(label="Show Test data", command=self.show_test_data)
+        preparation_menu.add_command(
+            label="Encode String Data", command=self.encode_data
+        )
+        preparation_menu.add_command(
+            label="Decode String Data", command=self.decode_data
+        )
+        preparation_menu.add_separator()
+        preparation_menu.add_command(
+            label="Train-Test Split", command=self.train_test_split_data
+        )
+        preparation_menu.add_command(
+            label="Show Train Data", command=self.show_train_data
+        )
+        preparation_menu.add_command(
+            label="Show Test data", command=self.show_test_data
+        )
 
-        #model menu
+        # model menu
         model_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Model", menu=model_menu)
         # Add a "Load Model" menu option
         model_menu.add_command(label="Load Model", command=self.load_model)
         # Add a "Load Label Encoders" menu option
-        model_menu.add_command(label="Load Label Encoders", command=self.load_label_encoders)
+        model_menu.add_command(
+            label="Load Label Encoders", command=self.load_label_encoders
+        )
+        model_menu.add_separator()
         model_menu.add_command(label="Train Model", command=self.train_model)
-        model_menu.add_command(label="Set Model Parameters (Into SQL DB)", command=self.set_model_parameters)
+        model_menu.add_command(
+            label="Set Model Parameters (Into SQL DB)",
+            command=self.set_model_parameters,
+        )
 
-        #microntorllers
+        # microntorllers
         export_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Export", menu=export_menu)
         export_menu.add_command(label="Export Model for Arduino", command=self.convert)
-        export_menu.add_command(label="Export Model and labels", )
-        export_menu.add_command(label="Export Model Only",)
+        export_menu.add_command(
+            label="Export Model and labels",
+        )
+        export_menu.add_command(
+            label="Export Model Only",
+        )
         export_menu.add_command(label="Save Model", command=self.store_model_arduino)
 
     def create_gui(self):
@@ -144,12 +182,13 @@ class MLGui:
 
         # Create a Combobox for selecting the classifier
         self.classifier_var = tk.StringVar()
-        self.classifier_combobox = Combobox(self.topLevel, textvariable=self.classifier_var)
+        self.classifier_combobox = Combobox(
+            self.topLevel, textvariable=self.classifier_var
+        )
         self.classifier_combobox["values"] = list(self.classifiers.keys())
         self.classifier_combobox.current(0)  # Set the default classifier
         self.classifier_combobox.pack(padx=10, pady=5)
 
-    
     def open_csv(self):
         file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
         if file_path:
@@ -172,10 +211,14 @@ class MLGui:
                 statistics_message = data_statistics.to_string()
                 messagebox.showinfo("Data Statistics", statistics_message)
             except Exception as e:
-                messagebox.showerror("Error", f"Error calculating data statistics: {str(e)}")
+                messagebox.showerror(
+                    "Error", f"Error calculating data statistics: {str(e)}"
+                )
         else:
-            messagebox.showwarning("Warning", "No data available for statistics. Generate or load data first.")
-
+            messagebox.showwarning(
+                "Warning",
+                "No data available for statistics. Generate or load data first.",
+            )
 
     def display_csv_data(self, dataframe):
         # Create a new window to display the CSV data
@@ -195,28 +238,30 @@ class MLGui:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         text_widget.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=text_widget.yview)
- 
+
     def make_data(self):
         print("Making data is starting....")
         self.X, self.y = make_blobs(
             n_samples=100, centers=3, n_features=2, random_state=0
         )
-       # print("Making data is done....")
+        # print("Making data is done....")
         messagebox.showinfo("Info", "Data generation is complete.")
 
-         # Check if self.data is already set and unset it
+        # Check if self.data is already set and unset it
         if self.data is not None:
             self.data = None
 
-         # Create a DataFrame from the X and y data
-        self.data = pd.DataFrame({'X': self.X[:, 0], 'y': self.X[:, 1]})
+        # Create a DataFrame from the X and y data
+        self.data = pd.DataFrame({"X": self.X[:, 0], "y": self.X[:, 1]})
         self.display_csv_data(self.data)
 
     def generate_ultrasonic_csv(self):
         data = []
         data.append(["Distance", "Command"])
         for i in range(self.numValues):
-            distance = Decimal(random.uniform(10, 50)).quantize(Decimal("0.00"))  # Random distance between 10 and 50 cm
+            distance = Decimal(random.uniform(10, 50)).quantize(
+                Decimal("0.00")
+            )  # Random distance between 10 and 50 cm
             if distance < 20:
                 command = "bad"
             elif distance < 29:
@@ -224,9 +269,9 @@ class MLGui:
             else:
                 command = "safe"
             data.append([distance, command])
-            
-         # Create a DataFrame from the generated data
-        self.data= pd.DataFrame(data[1:], columns=data[0])
+
+        # Create a DataFrame from the generated data
+        self.data = pd.DataFrame(data[1:], columns=data[0])
 
         # Save the DataFrame as a CSV file
         self.data.to_csv("Ultrasonic Data.csv", index=False)
@@ -235,7 +280,9 @@ class MLGui:
         self.display_csv_data(self.data)
 
         # Display the data using the display_csv_data function
-        messagebox.showinfo("Data Generation", "Ultrasonic data generation is complete.")
+        messagebox.showinfo(
+            "Data Generation", "Ultrasonic data generation is complete."
+        )
         print(f"CSV file '{'Ultrasonic Data.csv'}' generated successfully!")
 
     # Generate sample data
@@ -244,25 +291,30 @@ class MLGui:
         X = np.random.rand(100, 1) * 10
         y = 2 * X + 3 + np.random.randn(100, 1) * 2  # y = 2*X + 3 + noise
         self.data = pd.DataFrame({"X": X.flatten(), "Y": y.flatten()})
-        self.data.to_csv("2 digit Linear.csv", index=False, float_format='%.2f')
+        self.data.to_csv("2 digit Linear.csv", index=False, float_format="%.2f")
 
         # Display the data using the display_csv_data function
         self.display_csv_data(self.data)
-        messagebox.showinfo("Info", "Two-column linear regression data generation is complete.")
-
+        messagebox.showinfo(
+            "Info", "Two-column linear regression data generation is complete."
+        )
 
     def tripleLinearRegressData(self):
         # Generate sample data
         np.random.seed(42)  # For reproducibility
         X = np.random.rand(100, 3) * 10
-        y = (X[:, 0] + 2 * X[:, 1] - 3 * X[:, 2] + np.random.randn(100) * 2)  # y = X1 + 2*X2 - 3*X3 + noise
+        y = (
+            X[:, 0] + 2 * X[:, 1] - 3 * X[:, 2] + np.random.randn(100) * 2
+        )  # y = X1 + 2*X2 - 3*X3 + noise
         self.data = pd.DataFrame({"X1": X[:, 0], "X2": X[:, 1], "X3": X[:, 2], "y": y})
-        self.data.to_csv("3 digit Linear.csv", index=False, float_format='%.2f')
+        self.data.to_csv("3 digit Linear.csv", index=False, float_format="%.2f")
 
         # Display the data using the display_csv_data function
         self.display_csv_data(self.data)
 
-        messagebox.showinfo("Info", "Three-column linear regression data generation is complete.")
+        messagebox.showinfo(
+            "Info", "Three-column linear regression data generation is complete."
+        )
 
     def set_model_parameters(self):
         selected_classifier = self.classifier_combobox.get()
@@ -286,37 +338,42 @@ class MLGui:
             def set_hyperparameters():
                 # Retrieve hyperparameters from the input fields
                 new_hyperparameters = {
-                    param: float(param_entries[param].get()) for param in hyperparameters
+                    param: float(param_entries[param].get())
+                    for param in hyperparameters
                 }
 
                 # Update the selected classifier's hyperparameters
-                self.classifiers[selected_classifier]["hyperparameters"] = new_hyperparameters
+                self.classifiers[selected_classifier][
+                    "hyperparameters"
+                ] = new_hyperparameters
 
                 # Close the parameter setting dialog
                 param_window.destroy()
 
             # Create a button to confirm the hyperparameters
-            param_button = tk.Button(param_window, text="Set Hyperparameters", command=set_hyperparameters)
+            param_button = tk.Button(
+                param_window, text="Set Hyperparameters", command=set_hyperparameters
+            )
             param_button.pack(padx=10, pady=10)
 
         else:
             messagebox.showerror("Error", "Invalid classifier selection.")
- 
+
     def encode_data(self):
         if self.data is not None:
             data_updated = False
             for column in self.data.columns:
-                if self.data[column].dtype == 'object':
+                if self.data[column].dtype == "object":
                     le = LabelEncoder()
                     self.data[column] = le.fit_transform(self.data[column])
                     self.label_encoders[column] = le
                     data_updated = True
             if data_updated:
                 self.display_csv_data(self.data)
+                self.display_csv_data(self.label_encoders)
                 messagebox.showinfo("Info", "Data encoded successfully.")
             else:
                 messagebox.showinfo("Info", "No string data found in the dataset.")
-
 
     def decode_data(self):
         if self.data is not None:
@@ -329,7 +386,9 @@ class MLGui:
                 self.display_csv_data(self.data)
                 messagebox.showinfo("Info", "Data decoded successfully.")
             else:
-                messagebox.showinfo("Info", "No label encoders found. Data was not decoded.")
+                messagebox.showinfo(
+                    "Info", "No label encoders found. Data was not decoded."
+                )
 
     def train_model(self):
         if self.X is not None and self.y is not None:
@@ -345,15 +404,15 @@ class MLGui:
 
                 # Use the classifier with the updated hyperparameters
                 self.classifier = classifier_model
-                self.classifier.fit(self.X, self.y)
-                print(f"Training {selected_classifier} model is done with hyperparameters: {hyperparameters}")
+                self.model = self.classifier.fit(self.X, self.y)
+                print(
+                    f"Training {selected_classifier} model is done with hyperparameters: {hyperparameters}"
+                )
 
             else:
                 messagebox.showerror("Error", "Invalid classifier selection.")
         else:
             print("No data to train on. Generate data first.")
-
-
 
     def convert(self):
         if self.classifier:
@@ -365,11 +424,9 @@ class MLGui:
             print("Converting is done")
         else:
             print("No model to convert. Train a model first.")
-    
+
     def load_model(self):
-        model_path = filedialog.askopenfilename(
-            filetypes=[("Model Files", "*.joblib")]
-        )
+        model_path = filedialog.askopenfilename(filetypes=[("Model Files", "*.joblib")])
         if model_path:
             self.load_model_from_file(model_path)
 
@@ -402,7 +459,6 @@ class MLGui:
         except Exception as e:
             print(f"Error loading label encoders: {str(e)}")
 
-
     def store_model_arduino(self):
         if self.arduinoModel:
             model_path = filedialog.asksaveasfilename(
@@ -416,28 +472,34 @@ class MLGui:
                 print("Model saved to:", model_path)
         else:
             print("No model to save. Train and convert a model first.")
-    
+
     # Define methods for data splitting operations:
     def train_test_split_data(self):
         if self.data is not None:
             # Implement the train-test data splitting logic here
-            self.X = self.data.iloc[:, :-1]  # Features (all columns except the last one)
+            self.X = self.data.iloc[
+                :, :-1
+            ]  # Features (all columns except the last one)
             self.y = self.data.iloc[:, -1]  # Target variable (last column)
-            self.X_train, self.X_test, self.y_train,self.y_test = train_test_split(self.X,self.y, test_size=0.2)
-            #print("X_train:", self.X_train)
-            #print("X_test:", self.X_test)
-            #print("y_train:",self.y_train)
-            #print("y_test:",self.y_test)
+            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+                self.X, self.y, test_size=0.2
+            )
+            # print("X_train:", self.X_train)
+            # print("X_test:", self.X_test)
+            # print("y_train:",self.y_train)
+            # print("y_test:",self.y_test)
         else:
-             messagebox.showerror("Error", "No data available for splitting. Generate or load data first.")
-    
+            messagebox.showerror(
+                "Error", "No data available for splitting. Generate or load data first."
+            )
+
     # Define methods for showing data splitting operations:
     def show_train_data(self):
         if self.X_train is not None:
             self.display_csv_data(self.X_train)
             self.display_csv_data(self.y_train)
         else:
-             messagebox.showerror("Error", "No y train data splitted.First split data.")
+            messagebox.showerror("Error", "No y train data splitted.First split data.")
 
     # Define methods for showing data splitting operations:
     def show_test_data(self):
@@ -445,8 +507,7 @@ class MLGui:
             self.display_csv_data(self.X_test)
             self.display_csv_data(self.y_test)
         else:
-             messagebox.showerror("Error", "No y train data splitted.First split data.")
-
+            messagebox.showerror("Error", "No y train data splitted.First split data.")
 
     def plot_data(self):
         if self.X is not None:
@@ -456,7 +517,6 @@ class MLGui:
 
             # Determine the number of columns in the data
             num_columns = len(self.data.columns)
-
 
             # Create checkboxes for selecting columns to be plotted
             checkbox_vars = [tk.IntVar() for _ in range(num_columns)]
@@ -482,7 +542,9 @@ class MLGui:
             plot_type_combobox.pack(padx=10, pady=5)
 
             def plot_graph():
-                selected_columns = [i + 1 for i, var in enumerate(checkbox_vars) if var.get() == 1]
+                selected_columns = [
+                    i + 1 for i, var in enumerate(checkbox_vars) if var.get() == 1
+                ]
                 if not selected_columns:
                     messagebox.showerror("Error", "Please select at least one column.")
                 else:
@@ -502,12 +564,18 @@ class MLGui:
             plot_button.pack(padx=10, pady=10)
 
         else:
-            messagebox.showerror("Error", "No data to plot. Generate or load data first.")
+            messagebox.showerror(
+                "Error", "No data to plot. Generate or load data first."
+            )
 
     def plot_scatter_2d(self, selected_columns):
         if self.X is not None:
             fig, ax = plt.subplots()
-            ax.scatter(self.X[:, selected_columns[0] - 1], self.X[:, selected_columns[1] - 1], c=self.y)
+            ax.scatter(
+                self.X[:, selected_columns[0] - 1],
+                self.X[:, selected_columns[1] - 1],
+                c=self.y,
+            )
             ax.set_xlabel(f"Column {selected_columns[0]}")
             ax.set_ylabel(f"Column {selected_columns[1]}")
             ax.set_title("Scatter Plot - Model Data (2D)")
@@ -534,13 +602,18 @@ class MLGui:
     def plot_histogram(self, selected_column):
         if self.X is not None:
             fig, ax = plt.subplots()
-            ax.hist(self.X[:, selected_column], bins=10, alpha=0.5, label=f"Column {selected_column + 1}")
+            ax.hist(
+                self.X[:, selected_column],
+                bins=10,
+                alpha=0.5,
+                label=f"Column {selected_column + 1}",
+            )
             ax.set_xlabel(f"Values")
             ax.set_ylabel(f"Frequency")
             ax.set_title("Histogram - Model Data")
             ax.legend()
             plt.show()
-    
+
     def plot_model(self):
         messagebox.showinfo("Info", "Plot Model function not implemented yet.")
 

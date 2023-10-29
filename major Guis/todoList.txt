@@ -1,19 +1,7 @@
-adjust the file menu to a format
-
-file  
-  import csv file
-  exit
-
 Visualisations(external window)
   plot data
-  plot model
-  plot data vs model
-  Epoch vs loss
-
-data
-  generate ultrasnic data
-  generate two column number data
-  generate 3 column number data
+  plot  trained model
+  plot trained modle againt data
 
 model
   train model
@@ -21,5 +9,54 @@ model
   save model
   set model parameters(into sql db)
 
-logger
-  logs data and saves it into csv
+
+  to do 
+  data logging and saving
+  predict button interface
+  sote normal model
+
+
+def preprocess_input(distance):
+    # Reshape the input for prediction
+    X_pred = [[distance]]
+    return X_pred
+
+def predict_command(self):
+        # Preprocess the input
+        X_pred = preprocess_input(distance)
+        # Perform prediction
+        predicted_command_encoded = self.model.predict(X_pred)
+        # Decode the predicted label
+        predicted_command = self.label_encoder.inverse_transform(predicted_command_encoded)
+
+def calculate_accuracy(model, X, y_encoded):
+    # Calculate and print accuracy
+    accuracy = model.score(X, y_encoded)
+    return accuracy
+def save_model(model):
+    model_file = asksaveasfilename(defaultextension=".joblib", filetypes=[("Joblib Files", "*.joblib")])
+    if not model_file:
+        return
+    # Save the model to file
+    joblib.dump(model, model_file)
+    print("Model saved successfully.")
+    
+def save_model(model, label_encoder):
+    model_file = asksaveasfilename(defaultextension=".joblib", filetypes=[("Joblib Files", "*.joblib")])
+    if not model_file:
+        return
+    encoder_file = asksaveasfilename(defaultextension=".joblib", filetypes=[("Joblib Files", "*.joblib")])
+    if not encoder_file:
+        return
+    # Save the model and label encoder to files
+    joblib.dump(model, model_file)
+    joblib.dump(label_encoder, encoder_file)
+    print("Model and label encoder saved successfully.")
+
+def save_label_encoder(label_encoder):
+    encoder_file = asksaveasfilename(defaultextension=".joblib", filetypes=[("Joblib Files", "*.joblib")])
+    if not encoder_file:
+        return
+    # Save the label encoder to file
+    joblib.dump(label_encoder, encoder_file)
+    print("Label encoder saved successfully.")
