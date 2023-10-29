@@ -181,14 +181,14 @@ class MLGui:
         # microntorllers
         export_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Export", menu=export_menu)
-        export_menu.add_command(label="Export Model for Arduino", command=self.convert)
+        export_menu.add_command(label="Export Model for Arduino", command=self.convert_save_arduino_code)
         export_menu.add_command(
             label="Export Model and labels",
         )
         export_menu.add_command(
             label="Export Model Only",
         )
-        export_menu.add_command(label="Save Model", command=self.store_model_arduino)
+        export_menu.add_command(label="Export Model")
 
     def create_gui(self):
         frame = tk.Frame(self.topLevel)
@@ -468,30 +468,28 @@ class MLGui:
         except Exception as e:
             print(f"Error loading label encoders: {str(e)}")
 
-    def store_model_arduino(self):
-        if self.arduinoModel:
-            model_path = filedialog.asksaveasfilename(
-                defaultextension=".h",
-                title="Save TinyML Model",
-                filetypes=[("TinyML files", "*.h"), ("All files", "*.*")],
-            )
-            if model_path:
-                with open(model_path, "w") as file:
-                    file.write(self.arduinoModel)
-                print("Model saved to:", model_path)
-        else:
-            print("No model to save. Train and convert a model first.")
-
-
-    def convert(self): #make model arduino compatible
-        if self.classifier:
+    def convert_save_arduino_code(self):
+          if self.classifier:
             print("Converting initializing.....")
             self.arduinoModel = port(self.classifier)
             print(self.arduinoModel)
             print("Converting is done")
-        else:
-            print("No model to convert. Train a model first.")
 
+            if self.arduinoModel:
+                model_path = filedialog.asksaveasfilename(
+                    defaultextension=".h",
+                    title="Save TinyML Model",
+                    filetypes=[("TinyML files", "*.h"), ("All files", "*.*")],
+                )
+                if model_path:
+                    with open(model_path, "w") as file:
+                        file.write(self.arduinoModel)
+                    print("Model saved to:", model_path)
+            else:
+                print("No model to save. Train and convert a model first.")
+          else:
+            print("No model to convert. Train a model first.")
+              
 
     # Define methods for data splitting operations:
     def train_test_split_data(self):
