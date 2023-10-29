@@ -190,7 +190,7 @@ class MLGui:
             label="Export Model for Arduino", command=self.convert_save_arduino_code
         )
         export_menu.add_command(
-            label="Export Trained Model", command=self.export_trained_model
+            label="Export Trained Model", command=self.convert_save_model
         )
         export_menu.add_command(
             label="Export Label Encoders", command=self.export_label_encoders
@@ -249,7 +249,7 @@ class MLGui:
                 "No data available for statistics. Generate or load data first.",
             )
 
-    def display_csv_data(self, dataframe):
+    def display_csv_data(self, data):
         # Create a new window to display the CSV data
         csv_window = tk.Toplevel(self.topLevel)
         csv_window.title("CSV Data")
@@ -259,8 +259,16 @@ class MLGui:
         text_widget = tk.Text(csv_window, wrap=tk.WORD)
         text_widget.pack(fill=tk.BOTH, expand=True)
 
-        # Insert the DataFrame's data into the text widget
-        text_widget.insert(tk.END, dataframe.to_string())
+        # Insert the data or  DataFrame's data into the text widget
+        if isinstance(data, pd.DataFrame):
+            # If it's a DataFrame, use to_string
+            text_widget.insert(tk.END, data.to_string())
+        elif isinstance(data, dict):
+            # If it's a dictionary, convert to a string and insert
+            data_str = "\n".join(f"{key}: {value}" for key, value in data.items())
+            text_widget.insert(tk.END, data_str)
+        else:
+            text_widget.insert(tk.END, "Unsupported data type")
 
         # Add a scrollbar to the text widget
         scrollbar = tk.Scrollbar(text_widget)
