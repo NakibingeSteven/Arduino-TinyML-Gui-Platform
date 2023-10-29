@@ -6,8 +6,9 @@ from sklearn.datasets import make_blobs
 # from everywhereml.sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 import tkinter.messagebox as messagebox
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -37,8 +38,9 @@ class MLGui:
         self.classifier = None
 
         # Create a list of available classifiers with their corresponding hyperparameters
+            # Create a list of available classifiers with their corresponding hyperparameters
         self.classifiers = {
-            "Random Forest": {
+            "Random Forest Classifier": {
                 "model": RandomForestClassifier(n_estimators=10),
                 "hyperparameters": {
                     "n_estimators": 10,
@@ -46,21 +48,38 @@ class MLGui:
                     "min_samples_split": 2,
                 },
             },
-            "Decision Tree": {
+            "Random Forest Regressor": {
+                "model": RandomForestRegressor(n_estimators=10),
+                "hyperparameters": {
+                    "n_estimators": 10,
+                    "max_depth": None,
+                    "min_samples_split": 2,
+                },
+            },
+            "Decision Tree Classifier": {
                 "model": DecisionTreeClassifier(),
+                "hyperparameters": {"max_depth": None, "min_samples_split": 2},
+            },
+            "Decision Tree Regressor": {
+                "model": DecisionTreeRegressor(),
                 "hyperparameters": {"max_depth": None, "min_samples_split": 2},
             },
             "SVM": {
                 "model": SVC(kernel="linear"),
                 "hyperparameters": {"kernel": "linear", "C": 1.0},
             },
-            "K-Nearest Neighbors": {
+            "K-Nearest Neighbors Classifier": {
                 "model": KNeighborsClassifier(n_neighbors=5),
+                "hyperparameters": {"n_neighbors": 5, "weights": "uniform"},
+            },
+            "K-Nearest Neighbors Regressor": {
+                "model": KNeighborsRegressor(n_neighbors=5),
                 "hyperparameters": {"n_neighbors": 5, "weights": "uniform"},
             },
             # Add more classifiers with their hyperparameters here
         }
 
+    
         # for holding data
         self.data = None
 
