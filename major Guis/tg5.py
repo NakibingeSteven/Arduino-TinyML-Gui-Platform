@@ -134,6 +134,10 @@ class MLGui:
             label="Generate Ultrasonic Data", command=self.generate_ultrasonic_csv
         )
         data_menu.add_command(
+            label="Generate Ultrasonic Data 2", command=self.generate_ultrasonic4_csv
+        )
+
+        data_menu.add_command(
             label="Generate Linear Regression Data(2)",
             command=self.doubleLinearRegressData,
         )
@@ -171,7 +175,7 @@ class MLGui:
         model_menu.add_command(
             label="Load Label Encoders(joblib)", command=self.load_label_encoders
         )
-        model_menu.add_command( 
+        model_menu.add_command(
             label="Load Label Encoders(Dict txt)",
             command=self.load_label_encoder_dict_txt,
         )
@@ -218,6 +222,12 @@ class MLGui:
         self.classifier_combobox.current(0)  # Set the default classifier
         self.classifier_combobox.pack(padx=10, pady=5)
 
+        # Create a button to open the prediction window
+        predict_button = tk.Button( 
+            self.topLevel, text="Make Predictions", command=self.open_prediction_window
+        )
+        predict_button.pack(padx=10, pady=5)
+
     def open_csv(self):
         file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
         if file_path:
@@ -230,6 +240,57 @@ class MLGui:
             except Exception as e:
                 messagebox.showerror("Error", f"Error loading CSV file: {str(e)}")
 
+    def open_prediction_window(self):
+        # Create a new window for predictions
+        prediction_window = tk.Toplevel(self.topLevel)
+        prediction_window.title("Prediction Window")
+        prediction_window.geometry("400x300")
+
+        # Create a frame for the input form
+        input_frame = tk.Frame(prediction_window)
+        input_frame.pack(padx=20, pady=10)
+
+        input_label = tk.Label(input_frame, text="Enter Data for Prediction:")
+        input_label.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+
+        self.input_entries = {}
+        
+        # Create a subframe for input entries using grid
+        input_entries_frame = tk.Frame(input_frame)
+        input_entries_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=5)
+
+        for i, column in enumerate(self.data.columns[:-1]):
+            label = tk.Label(input_entries_frame, text=column)
+            label.grid(row=i, column=0, padx=10, pady=5, sticky="e")
+            entry = tk.Entry(input_entries_frame)
+            entry.grid(row=i, column=1, padx=10, pady=5)
+            self.input_entries[column] = entry
+
+        predict_button = tk.Button(input_frame, text="Predict", command=self.predict_data)
+        predict_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+
+        # Adjust row and column weights to make the form expandable
+        input_frame.grid_rowconfigure(1, weight=1)
+        input_frame.grid_columnconfigure(0, weight=1)
+        input_frame.grid_columnconfigure(1, weight=1)
+
+
+    
+    
+    def predict_data(self):
+        if self.model and all(entry.get() for entry in self.input_entries.values()):
+            # Get user input from the input form
+            user_input = [float(entry.get()) for entry in self.input_entries.values()]
+
+            # Use the trained model to make predictions
+            prediction = self.model.predict([user_input])
+
+            # Display the prediction
+            messagebox.showinfo("Prediction Result", f"Predicted class: {prediction[0]}")
+        else:
+            messagebox.showwarning("Warning", "Model or input data is missing or incomplete. Load a model and enter data for prediction.")
+    
+    
     def show_data_statistics(self):
         if self.data is not None:
             try:
@@ -306,6 +367,41 @@ class MLGui:
             else:
                 command = "safe"
             data.append([distance, command])
+
+        # Create a DataFrame from the generated data
+        self.data = pd.DataFrame(data[1:], columns=data[0])
+
+        # Save the DataFrame as a CSV file
+        self.data.to_csv("Ultrasonic Data.csv", index=False)
+
+        # Display the data using the display_csv_data function
+        self.display_csv_data(self.data)
+
+        # Display the data using the display_csv_data function
+        messagebox.showinfo(
+            "Data Generation", "Ultrasonic data generation is complete."
+        )
+        print(f"CSV file '{'Ultrasonic Data.csv'}' generated successfully!")
+
+    def generate_ultrasonic4_csv(self):
+        data = []
+        data.append(["Distance1", "Distance2", "Distance3", "Distance4", "Command"])
+
+        def generate_command(distance):
+            if distance < 20:
+                return "bad"
+            elif distance < 30:
+                return "good"
+            else:
+                return "excellent"
+
+        for i in range(self.numValues):
+            distance1 = Decimal(random.uniform(10, 50)).quantize(Decimal("0.00"))
+            distance2 = Decimal(random.uniform(10, 50)).quantize(Decimal("0.00"))
+            distance3 = Decimal(random.uniform(10, 50)).quantize(Decimal("0.00"))
+            distance4 = Decimal(random.uniform(10, 50)).quantize(Decimal("0.00"))
+            command1 = generate_command(distance1)
+            data.append([distance1, distance2, distance3, distance4, command1])
 
         # Create a DataFrame from the generated data
         self.data = pd.DataFrame(data[1:], columns=data[0])
@@ -465,7 +561,9 @@ class MLGui:
                 print(f"Error loading the model: {str(e)}")
 
     def load_label_encoders(self):
-        encoder_path = filedialog.askopenfilename(filetypes=[("Label Encoder Files", "*.joblib")])
+        encoder_path = filedialog.askopenfilename(
+            filetypes=[("Label Encoder Files", "*.joblib")]
+        )
         if encoder_path:
             try:
                 loaded_encoders = joblib.load(encoder_path)
@@ -476,7 +574,6 @@ class MLGui:
                     print("No valid label encoders found in the file.")
             except Exception as e:
                 print(f"Error loading label encoders: {str(e)}")
-
 
     def load_label_encoder_dict_txt(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
