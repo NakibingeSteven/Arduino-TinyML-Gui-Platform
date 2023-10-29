@@ -469,9 +469,9 @@ class MLGui:
             print(f"Error loading label encoders: {str(e)}")
 
     def convert_save_arduino_code(self):
-          if self.classifier:
+          if self.model:
             print("Converting initializing.....")
-            self.arduinoModel = port(self.classifier)
+            self.arduinoModel = port(self.model)
             print(self.arduinoModel)
             print("Converting is done")
 
