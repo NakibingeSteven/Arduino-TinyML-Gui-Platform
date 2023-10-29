@@ -25,6 +25,7 @@ from sklearn.preprocessing import LabelEncoder  # Add this import
 import joblib
 from micromlgen import port
 
+
 class MLGui:
     def __init__(self):
         self.topLevel = tk.Tk()
@@ -38,7 +39,7 @@ class MLGui:
         self.classifier = None
 
         # Create a list of available classifiers with their corresponding hyperparameters
-            # Create a list of available classifiers with their corresponding hyperparameters
+        # Create a list of available classifiers with their corresponding hyperparameters
         self.classifiers = {
             "Random Forest Classifier": {
                 "model": RandomForestClassifier(n_estimators=10),
@@ -79,7 +80,6 @@ class MLGui:
             # Add more classifiers with their hyperparameters here
         }
 
-    
         # for holding data
         self.data = None
 
@@ -169,8 +169,13 @@ class MLGui:
         model_menu.add_command(label="Load Model", command=self.load_model)
         # Add a "Load Label Encoders" menu option
         model_menu.add_command(
-            label="Load Label Encoders", command=self.load_label_encoders
+            label="Load Label Encoders(joblib)", command=self.load_label_encoders
         )
+        model_menu.add_command( 
+            label="Load Label Encoders(Dict txt)",
+            command=self.load_label_encoder_dict_txt,
+        )
+
         model_menu.add_separator()
         model_menu.add_command(label="Train Model", command=self.train_model)
         model_menu.add_command(
@@ -181,14 +186,19 @@ class MLGui:
         # microntorllers
         export_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Export", menu=export_menu)
-        export_menu.add_command(label="Export Model for Arduino", command=self.convert_save_arduino_code)
         export_menu.add_command(
-            label="Export Model and labels",
+            label="Export Model for Arduino", command=self.convert_save_arduino_code
         )
         export_menu.add_command(
-            label="Export Model Only",
+            label="Export Trained Model", command=self.export_trained_model
         )
-        export_menu.add_command(label="Export Model")
+        export_menu.add_command(
+            label="Export Label Encoders", command=self.export_label_encoders
+        )  # New menu option
+        export_menu.add_command(
+            label="Export Label Encoders(Dictionary)",
+            command=self.export_label_encoder_dict_txt,
+        )  # New menu option
 
     def create_gui(self):
         frame = tk.Frame(self.topLevel)
@@ -433,43 +443,98 @@ class MLGui:
         else:
             print("No data to train on. Generate data first.")
 
-
     def load_model(self):
         model_path = filedialog.askopenfilename(filetypes=[("Model Files", "*.joblib")])
         if model_path:
-            self.load_model_from_file(model_path)
+            try:
+                loaded_model = joblib.load(model_path)
+                if "model" in loaded_model:
+                    self.model = loaded_model["model"]  # Store in self.model
+                    print("Model loaded successfully from:", model_path)
+                else:
+                    print("No valid model found in the file.")
+            except Exception as e:
+                print(f"Error loading the model: {str(e)}")
 
     def load_label_encoders(self):
-        encoder_path = filedialog.askopenfilename(
-            filetypes=[("Label Encoder Files", "*.joblib")]
-        )
+        encoder_path = filedialog.askopenfilename(filetypes=[("Label Encoder Files", "*.joblib")])
         if encoder_path:
-            self.load_label_encoders_from_file(encoder_path)
+            try:
+                loaded_encoders = joblib.load(encoder_path)
+                if "label_encoders" in loaded_encoders:
+                    self.label_encoders = loaded_encoders["label_encoders"]
+                    print("Label encoders loaded successfully from:", encoder_path)
+                else:
+                    print("No valid label encoders found in the file.")
+            except Exception as e:
+                print(f"Error loading label encoders: {str(e)}")
 
-    def load_model_from_file(self, model_path):
-        try:
-            loaded_model = joblib.load(model_path)
-            if "model" in loaded_model:
-                self.classifier = loaded_model["model"]
-                print("Model loaded successfully from:", model_path)
-            else:
-                print("No valid model found in the file.")
-        except Exception as e:
-            print(f"Error loading the model: {str(e)}")
 
-    def load_label_encoders_from_file(self, encoder_path):
-        try:
-            loaded_encoders = joblib.load(encoder_path)
-            if "label_encoders" in loaded_encoders:
-                self.label_encoders = loaded_encoders["label_encoders"]
-                print("Label encoders loaded successfully from:", encoder_path)
-            else:
-                print("No valid label encoders found in the file.")
-        except Exception as e:
-            print(f"Error loading label encoders: {str(e)}")
+    def load_label_encoder_dict_txt(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
+        if file_path:
+            try:
+                loaded_encoders = {}
+                with open(file_path, "r") as file:
+                    lines = file.readlines()
+                    i = 0
+                    while i < len(lines):
+                        label = lines[i].strip().replace("Label: ", "")
+                        encoder = lines[i + 1].strip().replace("Encoder: ", "")
+                        loaded_encoders[label] = encoder
+                        i += 2
+                self.label_encoders = loaded_encoders
+                print("Label encoders loaded from text dictionary file:", file_path)
+            except Exception as e:
+                print(
+                    f"Error loading label encoders from text dictionary file: {str(e)}"
+                )
+
+    def export_label_encoders(self):
+        if self.label_encoders:
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".joblib",
+                filetypes=[("Joblib Files", "*.joblib"), ("All files", "*.*")],
+                title="Save Label Encoders",
+            )
+            if file_path:
+                label_encoders = {"label_encoders": self.label_encoders}
+                joblib.dump(label_encoders, file_path)
+                messagebox.showinfo("Info", "Label encoders exported successfully.")
+        else:
+            messagebox.showwarning("Warning", "No label encoders to export.")
+
+    def export_label_encoder_dict_txt(self):
+        if self.label_encoders:
+            # Save label encoders as a text file
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                title="Save Label Encoders (Text File)",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+            )
+            if file_path:
+                with open(file_path, "w") as file:
+                    for label, encoder in self.label_encoders.items():
+                        file.write(f"Label: {label}\n")
+                        file.write(f"Encoder: {encoder}\n")
+                print("Label encoders saved as a text file to:", file_path)
+
+    def convert_save_model(self):
+        if self.model:
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".joblib",
+                filetypes=[("Joblib Files", "*.joblib"), ("All files", "*.*")],
+                title="Save Trained Model",
+            )
+            if file_path:
+                model_data = {"model": self.model}
+                joblib.dump(model_data, file_path)
+                messagebox.showinfo("Info", "Trained model exported successfully.")
+        else:
+            messagebox.showwarning("Warning", "No trained model to export.")
 
     def convert_save_arduino_code(self):
-          if self.model:
+        if self.model:
             print("Converting initializing.....")
             self.arduinoModel = port(self.model)
             print(self.arduinoModel)
@@ -487,9 +552,8 @@ class MLGui:
                     print("Model saved to:", model_path)
             else:
                 print("No model to save. Train and convert a model first.")
-          else:
+        else:
             print("No model to convert. Train a model first.")
-              
 
     # Define methods for data splitting operations:
     def train_test_split_data(self):
@@ -504,8 +568,8 @@ class MLGui:
             )
             # print("X_train:", self.X_train)
             # print("X_test:", self.X_test)
-            print("y_train:",self.y_train)
-            print("y_test:",self.y_test)
+            print("y_train:", self.y_train)
+            print("y_test:", self.y_test)
             print("Data is split into X and y")
         else:
             messagebox.showerror(
